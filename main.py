@@ -189,10 +189,8 @@ if __name__ == '__main__':
     for f in recommended.head(10).index.to_list():
         print(' - "' + f + '"')
 
-    print()
-    print(user, ' NIE polecamy Ci')
+    print('\n', user, ' NIE polecamy Ci')
     
     notRecommended = recommended.sort_values('Score', ascending=True)
     for f in notRecommended.head(10).index.to_list():
         print(' - "' + f + '"')
-)
