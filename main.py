@@ -108,8 +108,7 @@ def find_similar_users(dataset, user, num_users, score_method='pearson', min_com
     return scores[top_users]
 
 
-def find_recommended_movies(data, user, opposite=False, min_common_ratings=2, results_count=10, corr_users_count=8,
-                            min_users_count=1):
+def find_recommended_movies(data, user, min_common_ratings=2, corr_users_count=8, min_users_count=1):
     # Wyliczenie podobnych osób i zamiana na pandas.DataFrame
     similar_users_numpy = find_similar_users(data, user, corr_users_count, min_common_ratings=min_common_ratings)
     similar_users = pd.DataFrame(similar_users_numpy[:, 1], similar_users_numpy[:, 0], {'Score'},
@@ -150,14 +149,13 @@ def find_recommended_movies(data, user, opposite=False, min_common_ratings=2, re
             if np.isnan(user_rate):
                 continue
 
-            factor = similar_users.loc[user_name].iloc[
-                0]  # if factor == 0.0 a ten user jest jedyny, to ten movie_score będzie Nan
+            factor = similar_users.loc[user_name].iloc[0]
             rates_sum += user_rate * factor
             factors_sum += abs(factor)
             users_count += 1
 
-        # there is too little sum of correlation, skip
-        if factors_sum < 1 | users_count < min_users_count:
+        # if the sum of correlation or number of user's ratings are too small, skip
+        if factors_sum < 1 or users_count < min_users_count:
             continue
 
         movie_score = rates_sum / factors_sum
@@ -165,7 +163,7 @@ def find_recommended_movies(data, user, opposite=False, min_common_ratings=2, re
     movie_scores = pd.DataFrame(movie_scores.values(), movie_scores.keys(),
                                 ('Score', 'users_count', 'rates_sum', 'factors_sum'), dtype=float).dropna()
 
-    return movie_scores.sort_values('Score', ascending=opposite).head(results_count)
+    return movie_scores.sort_values(['Score', 'factors_sum'], ascending=False)
 
 
 # Parse user name and open data file
@@ -184,11 +182,17 @@ if __name__ == '__main__':
     similar_users = pd.DataFrame(similar_users_numpy[:, 1], similar_users_numpy[:, 0], {'Score'},
                                  dtype=float).sort_values('Score', ascending=False)
     print(similar_users)
+    print()
+    print(user, ' polecamy Ci:')
+    
+    recommended = find_recommended_movies(data, user, min_common_ratings=2, corr_users_count=8, min_users_count=2)
+    for f in recommended.head(10).index.to_list():
+        print(' - "' + f + '"')
 
-    print(user, ' polecamy Ci')
-    print(find_recommended_movies(data, user, opposite=False, min_common_ratings=2, results_count=10, corr_users_count=8,
-                            min_users_count=2))
-
+    print()
     print(user, ' NIE polecamy Ci')
-    print(find_recommended_movies(data, user, results_count=10, opposite=True)
+    
+    notRecommended = recommended.sort_values('Score', ascending=True)
+    for f in notRecommended.head(10).index.to_list():
+        print(' - "' + f + '"')
 )
