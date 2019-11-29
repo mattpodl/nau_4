@@ -1,4 +1,5 @@
 import json
+
 import pandas
 
 excel_data_df = pandas.read_excel('Dane_filmowe.xlsx', encode='utf-8', header=None, skiprows=1)
@@ -21,8 +22,11 @@ for i in range(numrows):
                 dictionaryForJson[name][excel_data_df[j+1][i]] = int(excel_data_df[j][i])
 
 print((dictionaryForJson))
-gotowyJson = json.dumps(dictionaryForJson)
-print('Excel Sheet to JSON:\n', gotowyJson)
+
+with open('ratings.json', 'w', encoding='utf-8') as outfile:
+    json.dump(dictionaryForJson, outfile, ensure_ascii=False, indent=4)
+
+
 # print(excel_data_df[1][0])
 # print(excel_data_df)
 # print(json.dumps(json_str, indent=1))
